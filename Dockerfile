@@ -21,3 +21,4 @@ RUN curl -OL https://github.com/WorksApplications/elasticsearch-sudachi/releases
     bin/elasticsearch-plugin install file://$(pwd)/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip && \
     rm analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip
 COPY --chown=elasticsearch:root --from=dict-builder ./sudachi-dictionary-*/*.dic ./config/sudachi/
+COPY ./sudachi.json ./plugins/analysis-sudachi/
