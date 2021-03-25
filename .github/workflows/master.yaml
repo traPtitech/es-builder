@@ -7,14 +7,72 @@ on:
 
 env:
   IMAGE_NAME: es-with-sudachi
-  IMAGE_TAG: 7.10.1-2.1.0
+  ELASTIC_VER: 7.10.2
+  SUDACHI_VER: 0.5.3-SNAPSHOT
+  SUDACHI_PLUGIN_VER: 2.1.1-SNAPSHOT
 
 jobs:
   build-image:
     name: Build Images
     runs-on: ubuntu-latest
     steps:
+      - name: Set IMAGE_TAG env
+        run: echo "IMAGE_TAG=${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}" >> $GITHUB_ENV
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Checkout WorksApplications/Sudachi
+        uses: actions/checkout@v2
+        with:
+          repository: WorksApplications/Sudachi
+          path: Sudachi
+      - name: Check sudachi ver
+        id: check-sudachi-ver
+        run: |
+          cd Sudachi
+          VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "::set-output name=version::${VERSION}"
+      - name: Assert sudachi ver
+        uses: nick-invision/assert-action@v1
+        with:
+          expected: ${{ env.SUDACHI_VER }}
+          actual: ${{ steps.check-sudachi-ver.outputs.version }}
+      - name: Build and install sudachi
+        run: |
+          cd Sudachi
+          mvn install
+
+      - name: Checkout WorksApplications/elasticsearch-sudachi
+        uses: actions/checkout@v2
+        with:
+          repository: WorksApplications/elasticsearch-sudachi
+          path: elasticsearch-sudachi
+      - name: Check elasticsearch-sudachi ver
+        id: check-es-sudachi-ver
+        run: |
+          cd elasticsearch-sudachi
+          VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
+          echo "::set-output name=version::${VERSION}"
+      - name: Assert elasticsearch-sudachi ver
+        uses: nick-invision/assert-action@v1
+        with:
+          expected: ${{ env.SUDACHI_PLUGIN_VER }}
+          actual: ${{ steps.check-es-sudachi-ver.outputs.version }}
+      - name: Edit build.gradle
+        run: |
+          cd elasticsearch-sudachi
+          sed -i 's/mavenCentral()/mavenCentral()\n    mavenLocal()/g' build.gradle
+          sed -i "s/com.worksap.nlp:sudachi:0.5.1/com.worksap.nlp:sudachi:${SUDACHI_VER}/g" build.gradle
+      - name: Build distZip
+        run: |
+          cd elasticsearch-sudachi
+          ./gradlew -q -PelasticsearchVersion=7.10.2 distZip
+
       - uses: actions/checkout@v2
+        with:
+          path: es-builder
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -28,7 +86,11 @@ jobs:
 
       - name: Login GitHub Registry
         run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
+      - name: Copy built plugin
+        run: cp elasticsearch-sudachi/build/distributions/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip es-builder/
       - name: Build Image
-        run: docker build -t docker.pkg.github.com/traptitech/es-builder/${IMAGE_NAME}:${IMAGE_TAG} .
+        run: |
+          cd es-builder
+          docker build -t docker.pkg.github.com/traptitech/es-builder/${IMAGE_NAME}:${IMAGE_TAG} --build-arg ELASTIC_VER=${ELASTIC_VER} --build-arg SUDACHI_PLUGIN_VER=${SUDACHI_PLUGIN_VER} .
       - name: Push image to GitHub Registry
         run: docker push docker.pkg.github.com/traptitech/es-builder/${IMAGE_NAME}:${IMAGE_TAG}
