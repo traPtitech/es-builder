@@ -1,5 +1,5 @@
-ARG ELASTIC_VER=7.10.1
-ARG SUDACHI_PLUGIN_VER=2.1.0
+ARG ELASTIC_VER
+ARG SUDACHI_PLUGIN_VER
 ARG SUDACHI_DICT_VER=20201223
 
 
@@ -17,8 +17,8 @@ FROM docker.elastic.co/elasticsearch/elasticsearch-oss:${ELASTIC_VER}
 
 ARG ELASTIC_VER
 ARG SUDACHI_PLUGIN_VER
-RUN curl -OL https://github.com/WorksApplications/elasticsearch-sudachi/releases/download/v${SUDACHI_PLUGIN_VER}/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip && \
-    bin/elasticsearch-plugin install file://$(pwd)/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip && \
+COPY analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip .
+RUN bin/elasticsearch-plugin install file://$(pwd)/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip && \
     rm analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip
 COPY --chown=elasticsearch:root --from=dict-builder ./sudachi-dictionary-*/*.dic ./config/sudachi/
 COPY ./sudachi.json ./plugins/analysis-sudachi/
