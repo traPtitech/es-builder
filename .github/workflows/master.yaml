@@ -84,13 +84,23 @@ jobs:
         with:
           version: latest
 
-      - name: Login GitHub Registry
-        run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
       - name: Copy built plugin
         run: cp elasticsearch-sudachi/build/distributions/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip es-builder/
-      - name: Build Image
-        run: |
-          cd es-builder
-          docker build -t docker.pkg.github.com/traptitech/es-builder/${IMAGE_NAME}:${IMAGE_TAG} --build-arg ELASTIC_VER=${ELASTIC_VER} --build-arg SUDACHI_PLUGIN_VER=${SUDACHI_PLUGIN_VER} .
-      - name: Push image to GitHub Registry
-        run: docker push docker.pkg.github.com/traptitech/es-builder/${IMAGE_NAME}:${IMAGE_TAG}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: traptitech
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: es-builder
+          push: true
+          build-args: |
+            ELASTIC_VER=${{ env.ELASTIC_VER }}
+            SUDACHI_PLUGIN_VER=${{ env.SUDACHI_PLUGIN_VER }}
+          tags: |
+            ghcr.io/traptitech/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
