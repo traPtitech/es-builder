@@ -99,6 +99,7 @@ jobs:
         with:
           context: es-builder
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             ELASTIC_VER=${{ env.ELASTIC_VER }}
             SUDACHI_PLUGIN_VER=${{ env.SUDACHI_PLUGIN_VER }}
