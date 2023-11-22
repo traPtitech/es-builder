@@ -1,6 +1,7 @@
 ARG ELASTIC_VER
 ARG SUDACHI_PLUGIN_VER
-ARG SUDACHI_DICT_VER=20230110
+# http://sudachi.s3-website-ap-northeast-1.amazonaws.com/sudachidict/
+ARG SUDACHI_DICT_VER=20230927
 
 
 FROM --platform=$BUILDPLATFORM alpine:latest AS plugin-downloader
