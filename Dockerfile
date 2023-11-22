@@ -12,7 +12,7 @@ ARG SUDACHI_PLUGIN_VER
 
 RUN apk --no-cache --update add curl
 
-RUN curl -OL https://github.com/WorksApplications/elasticsearch-sudachi/releases/download/v${SUDACHI_PLUGIN_VER}/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip
+RUN curl -OL https://github.com/WorksApplications/elasticsearch-sudachi/releases/download/v${SUDACHI_PLUGIN_VER}/elasticsearch-${ELASTIC_VER}-analysis-sudachi-${SUDACHI_PLUGIN_VER}.zip
 
 
 FROM --platform=$BUILDPLATFORM alpine:latest AS dict-downloader
@@ -33,9 +33,9 @@ FROM elasticsearch:${ELASTIC_VER}
 ARG ELASTIC_VER
 ARG SUDACHI_PLUGIN_VER
 
-COPY --from=plugin-downloader /work/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip .
-RUN bin/elasticsearch-plugin install file://$(pwd)/analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip && \
-    rm analysis-sudachi-${ELASTIC_VER}-${SUDACHI_PLUGIN_VER}.zip
+COPY --from=plugin-downloader /work/elasticsearch-${ELASTIC_VER}-analysis-sudachi-${SUDACHI_PLUGIN_VER}.zip .
+RUN bin/elasticsearch-plugin install file://$(pwd)/elasticsearch-${ELASTIC_VER}-analysis-sudachi-${SUDACHI_PLUGIN_VER}.zip && \
+    rm elasticsearch-${ELASTIC_VER}-analysis-sudachi-${SUDACHI_PLUGIN_VER}.zip
 
 COPY --from=dict-downloader --chown=elasticsearch:root /work/sudachi-dictionary-*/*.dic ./config/sudachi/
 
