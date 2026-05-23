@@ -7,8 +7,8 @@ on:
 
 env:
   IMAGE_NAME: es-with-sudachi
-  ELASTIC_VER: 8.8.1
-  SUDACHI_PLUGIN_VER: 3.1.0
+  ELASTIC_VER: 8.17.10
+  SUDACHI_PLUGIN_VER: 3.5.0
 
 jobs:
   build-image:
