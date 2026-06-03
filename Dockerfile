@@ -4,7 +4,7 @@ ARG SUDACHI_PLUGIN_VER
 ARG SUDACHI_DICT_VER=20260428
 
 
-FROM --platform=$BUILDPLATFORM alpine:latest AS plugin-downloader
+FROM --platform=$BUILDPLATFORM alpine:latest@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS plugin-downloader
 
 WORKDIR /work
 ARG ELASTIC_VER
@@ -15,7 +15,7 @@ RUN apk --no-cache --update add curl
 RUN curl -OL https://github.com/WorksApplications/elasticsearch-sudachi/releases/download/v${SUDACHI_PLUGIN_VER}/elasticsearch-${ELASTIC_VER}-analysis-sudachi-${SUDACHI_PLUGIN_VER}.zip
 
 
-FROM --platform=$BUILDPLATFORM alpine:latest AS dict-downloader
+FROM --platform=$BUILDPLATFORM alpine:latest@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 AS dict-downloader
 
 WORKDIR /work
 ARG SUDACHI_DICT_VER
